@@ -1,0 +1,3 @@
+/Users/robert/Desktop/P4-07-06-2021/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/robert/Desktop/P4-07-06-2021/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/robert/Desktop/P4-07-06-2021/cmake-build-debug/CMakeFiles/Dzianach_Konieczka_P4.dir
