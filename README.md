@@ -1,7 +1,7 @@
 # **Algorytmy z powracaniem**
 
 ##### Stwórz implementację następujących algorytmów:
-- Generowanie spójnego grafu nieskierowanego z cyklami Hamiltona i Eulera (3)
+- DONE: Generowanie spójnego grafu nieskierowanego z cyklami Hamiltona i Eulera (3)
 - Hierholzera (3.5)
 - Znajdowanie cyklu Hamiltona (4)
 - Fleury'ego (5)
