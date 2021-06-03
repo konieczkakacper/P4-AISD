@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-int ns[] = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
-double bs[] = {0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875};
+int ns[] = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};         //liczby wierzchołków
+//double bs[] = {0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875};      //gestosc grafu ale chyba nie jest tu potrzebna
 
-
+//-------------------------Generowanie grafu z cyklem hamiltona i eulera-----------------------------
 
 int Random(int x, int y)
 {
@@ -27,7 +27,7 @@ void shuffle(int *A, int n)
 }
 
 
-void generateHamiltonEuler(int n, double b, int** G)
+void generateHamiltonEuler(int n, int** G)
 {
     for (int u = 0; u < n; u++)                          //te dwa fory: stworzenie n wierzchołków...
     {
@@ -40,7 +40,7 @@ void generateHamiltonEuler(int n, double b, int** G)
     int u, v;
 
     int *array = calloc(sizeof(*array), n);         //alokujemy tablicę o rozmiarze n
-    for(int j = 0; j < n; j++)                      //wypełniamy tablicę liczbami od 0 do n (to są nasze wierzchołki)
+    for(int j = 0; j < n; j++)                      //wypełniamy tablicę liczbami od 0 do n-1 (to są nasze wierzchołki)
     {
         array[j] = j;
     }
@@ -66,8 +66,7 @@ void generateHamiltonEuler(int n, double b, int** G)
 
                 //na tym etapie mamy już cykl hamiltona
 
-
-    int k, l, m;
+    int k,l,m;
 
     do
     {                           //szukamy trzech wierzchołków pomiędzy którymi nie ma krawędzi...
@@ -78,11 +77,151 @@ void generateHamiltonEuler(int n, double b, int** G)
     }while(G[k][l] == 1 || G[l][m] == 1 || G[k][m] == 1);
 
     G[k][l] = 1;                //...i tworzymy między nimi krawędzie
+    G[l][k] = 1;
     G[l][m] = 1;
+    G[m][l] = 1;
     G[k][m] = 1;
+    G[m][k] = 1;
 }
 
 
+
+
+
+//-----------------------------algorytm Fleury'ego--------------------------------------------
+
+
+void DFSVisit(int** G, int i, int n, int* colours, int* vertexCount)                  //colours: 0 = white, 1 = grey, 2 = black
+{
+    colours[i] = 1;                                 //grey
+    for (int j = 0; j < n; j++)
+    {
+        if (colours[j] == 0 && G[i][j]==1)          //jeśli sąsiad jest biały i sąsiad rzeczywiscie jest sąsiadem (ma połączenie z obecnym wierzchołkiem)...
+        {
+            DFSVisit(G, j, n, colours, vertexCount);
+        }
+    }
+    colours[i] = 2;                                 //black
+    ++vertexCount;
+}
+
+int DFS(int** G, int n)                //DFS - wersja zliczająca ilość odwiedzonych wierzchołków i zwracająca tę ilość
+{
+    int vertexCount = 0;
+
+    int* colours = calloc(sizeof(*colours), n);     //(wersja c++: new int[n];)
+    for (int i = 0; i < n; i++)
+    {
+        colours[i] = 0;             //white - kolorujemy każdy wierzcohłek na biało
+    }
+    for (int i = 0; i < n; i++)
+    {
+        if (colours[i] == 0)
+        {
+            DFSVisit(G, i, n, colours, &vertexCount);
+        }
+    }
+
+    return vertexCount;
+}
+
+
+bool isBridge(int** G, int u, int v, int n)         //u i v to wierzchołki połączone krawędzią. Funkcja zwróci true jeśli krawędź (u,v) jest mostem
+{
+    if(G[u][v] == 1)                                //jeśli wgl istnieje krawędź (u,v)
+    {
+        int a = DFS(G, n);                              //sprawdzamy ile wierzchołków przeszliśmy
+        G[u][v] = 0;                                    //usuwamy tymczasowo krawędź (u,v)
+        G[v][u] = 0;
+        int b = DFS(G, n);                              //sprawdzamy czy po usunięciu tej krawędzi przeszliśmy mniej wierzchołków czy tyle samo
+        G[u][v] = 1;
+        G[v][u] = 1;
+
+        if(a != b)                                      //jak mniej to znaczy ze to był most
+            return true;
+        else
+            return false;
+    }
+
+    return false;                               //krawędź nie jest mostem bo wgl nie ma takiej krawędzi (G[u][v] == 0)
+}
+
+
+void Fleury()
+{
+
+}
+
+
+
+
+
+//----------------------------------------algorytm Hierholzera------------------------------------
+
+void push(int *stack, int *topOfStack, int x)
+{
+    stack[*topOfStack] = x;
+    topOfStack++;
+}
+
+int pop(int *stack, int *topOfStack)
+{
+    topOfStack--;
+    return stack[*topOfStack];
+}
+
+bool stackIsEmpty(int *topOfStack)
+{
+    if(*topOfStack == 0)
+        return true;
+    return false;
+}
+
+
+void Hierholzer(int **G, int n)
+{
+
+    int *array = calloc(sizeof(*array), n);         //alokujemy tablicę o rozmiarze n
+
+    for(int j = 0; j < n; j++)                      //wypełniamy tablicę liczbami od 0 do n-1 (to są nasze wierzchołki)
+    {
+        array[j] = j;
+    }
+
+    int *stack = calloc(sizeof(*stack), n);
+    int topOfStack = 0;
+    int temp = 0;
+
+    push(stack, &topOfStack, array[0]);         //dodanie na stos pierwszego wierzchołka z tablicy wierzchołków
+
+
+    do                                              //YYY no przy tej pętli sie zawiesiłem xdd
+    {
+        int u = stack[topOfStack - 1];
+        int v;
+
+        for(int i = 0; i < n; i++)
+        {
+            v = i;
+            if(G[u][v] == 1)
+            {
+                G[u][v] = 0;
+                G[v][u] = 0;
+                push(stack, &topOfStack, v);
+                u = v;
+            }
+        }
+
+
+    }while(!stackIsEmpty(&topOfStack));
+
+
+
+
+
+
+
+    }
 
 
 
@@ -110,6 +249,25 @@ void generateHamiltonEuler(int n, double b, int** G)
 
 int main()
 {
+    for(int k = 0; k < sizeof(ns) / sizeof(*ns); k++)
+    {
+        int n = ns[k];
+        int** G = calloc(sizeof(**G), n);
+
+        for(int i = 0; i < n; ++i)
+        {
+            G[i] = calloc(sizeof(G), n);
+        }
+
+        clock_t begin = clock();
+        generateHamiltonEuler(n, G);
+        clock_t end = clock();
+
+        double seconds = (double) (end - begin) / (double) CLOCKS_PER_SEC;
+
+        printf("generateHamiltonEuler \t n = %d \t time = %lf \n", n, seconds);
+
+    }
 
 return 0;
 
