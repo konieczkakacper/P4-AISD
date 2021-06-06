@@ -1,11 +1,7 @@
 #include <stdio.h>
-#include <assert.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 
-int ns[] = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};         //liczby wierzchołków
-//double bs[] = {0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875};      //gestosc grafu ale chyba nie jest tu potrzebna
 
 //-------------------------Generowanie grafu z cyklem hamiltona i eulera-----------------------------
 
@@ -27,7 +23,7 @@ void shuffle(int *A, int n)
 }
 
 
-void generateHamiltonEuler(int n, int** G)
+void generateHamiltonEuler(int n, int** G, double b)
 {
     for (int u = 0; u < n; u++)                          //te dwa fory: stworzenie n wierzchołków...
     {
@@ -63,25 +59,29 @@ void generateHamiltonEuler(int n, int** G)
         G[u][v] = 1;
         G[v][u] = 1;
     }
+    //na tym etapie mamy już cykl hamiltona
 
-                //na tym etapie mamy już cykl hamiltona
 
     int k,l,m;
+    double ds = (b * n * (n - 1)) / 2;
+    int edges = n;
+    while (edges < ds) {
+        do
+        {                           //szukamy trzech wierzchołków pomiędzy którymi nie ma krawędzi...
+            k = Random(0, n);
+            l = Random(0, n);
+            m = Random(0, n);
 
-    do
-    {                           //szukamy trzech wierzchołków pomiędzy którymi nie ma krawędzi...
-        k = Random(0, n);
-        l = Random(0, l);
-        m = Random(0, m);
+        } while(G[k][l] == 1 || G[l][m] == 1 || G[k][m] == 1 || k == m || l == m || l == k);
 
-    }while(G[k][l] == 1 || G[l][m] == 1 || G[k][m] == 1);
-
-    G[k][l] = 1;                //...i tworzymy między nimi krawędzie
-    G[l][k] = 1;
-    G[l][m] = 1;
-    G[m][l] = 1;
-    G[k][m] = 1;
-    G[m][k] = 1;
+        G[k][l] = 1;                //...i tworzymy między nimi krawędzie
+        G[l][k] = 1;
+        G[l][m] = 1;
+        G[m][l] = 1;
+        G[k][m] = 1;
+        G[m][k] = 1;
+        edges += 3;
+    }
 }
 
 
@@ -89,7 +89,7 @@ void generateHamiltonEuler(int n, int** G)
 
 
 //-----------------------------algorytm Fleury'ego--------------------------------------------
-
+/*
 
 void DFSVisit(int** G, int i, int n, int* colours, int* vertexCount)                  //colours: 0 = white, 1 = grey, 2 = black
 {
@@ -230,6 +230,7 @@ void Hierholzer(int **G, int n)
 
 
 
+*/
 
 
 
@@ -243,33 +244,43 @@ void Hierholzer(int **G, int n)
 
 
 
-
-
+int ns[] = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};         //liczby wierzchołków
+double bs[] = {0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875};      //gestosc grafu ale chyba nie jest tu potrzebna
 
 
 int main()
 {
     for(int k = 0; k < sizeof(ns) / sizeof(*ns); k++)
     {
-        int n = ns[k];
-        int** G = calloc(sizeof(**G), n);
-
-        for(int i = 0; i < n; ++i)
+        for(int j = 0; j < sizeof(bs) / sizeof(*bs); j++)
         {
-            G[i] = calloc(sizeof(G), n);
+            int n = ns[k];
+            double b = bs[j];
+            int** G = calloc(n, sizeof(int*));
+
+            for(int i = 0; i < n; ++i)
+            {
+                G[i] = calloc(n, sizeof(int));
+            }
+
+            clock_t begin = clock();
+            generateHamiltonEuler(n, G, b);
+            clock_t end = clock();
+
+            double seconds = (double) (end - begin) / (double) CLOCKS_PER_SEC;
+
+            printf("generateHamiltonEuler \t n = %d \t b = %lf \t time = %lf \n", n, b, seconds);
+
+            for (int i = 0; i < n; i++) {
+                free(G[i]);
+            }
+            free(G);
         }
 
-        clock_t begin = clock();
-        generateHamiltonEuler(n, G);
-        clock_t end = clock();
-
-        double seconds = (double) (end - begin) / (double) CLOCKS_PER_SEC;
-
-        printf("generateHamiltonEuler \t n = %d \t time = %lf \n", n, seconds);
 
     }
 
-return 0;
+    return 0;
 
 
 }
